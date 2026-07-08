@@ -4,100 +4,101 @@ using System.Text;
 
 namespace ConsoleDungeonGame
 {
-    class GameEntity
+    interface IDamageable
+    {
+        int HP { get; set; }
+        void TakeDamage(int amount);
+    }
+    abstract class GameEntity : IDamageable
     {
         public string Name { get; set; }
+        public int Damage { get; set; }
+
         private int hp;
         public int HP
         {
             get { return hp; }
-            set { if (value < 0) hp = 0; else hp = value; } // Ensure HP doesn't go below 0
+            set { if (value < 0) hp = 0; else hp = value; }
         }
-        public int Damage { get; set; }
 
-        public virtual void Attack(GameEntity target)
+        public void TakeDamage(int amount)
         {
-            bool isCrit;
-            int  finalDamage = GameHelper.CalculateDamage(this.Damage, out isCrit);
-
-            if (isCrit)
-            {
-                GameHelper.PrintColor($"Critical hit! {this.Name} damage to {target.Name}.", ConsoleColor.Red);
-            }
-            else
-            {
-                Console.WriteLine($"{this.Name} damage to {target.Name}.");
-            }
-
-            ApplyDamage(target, finalDamage);
+            int oldHP = this.HP;
+            this.HP -= amount;
+            GameHelper.PrintColor($"{Name} HP: {oldHP} -> {this.HP}", ConsoleColor.Red);
         }
 
-        public virtual void Attack(GameEntity target, string skillName)
-        {
-            bool isCrit;
-            int finalDamage = GameHelper.CalculateDamage(this.Damage + 15, out isCrit);
-
-            GameHelper.PrintColor($"{this.Name} uses {skillName} on {target.Name}.", ConsoleColor.Cyan);
-            if (isCrit) 
-            {
-                GameHelper.PrintColor($"Critical hit! {this.Name} damage to {target.Name}.", ConsoleColor.Red);
-            }
-
-            ApplyDamage(target, finalDamage);
-
-        }
-
-        private void ApplyDamage(GameEntity target, int damageAmount)
-        {
-            int oldHP = target.HP;
-            target.HP -= damageAmount;
-            GameHelper.PrintColor($"{target.Name} HP: {oldHP} -> {target.HP}", ConsoleColor.Red);
-        }
-    
+        public abstract void Attack(IDamageable target);
+        public abstract void Attack(IDamageable target, string skillName); //over load
     }
+
+
     class Player : GameEntity
     {
-        //overide
-        public override void Attack(GameEntity target)
+        public override void Attack(IDamageable target)
         {
             bool isCrit;
             int finalDamage = GameHelper.CalculateDamage(this.Damage, out isCrit);
 
-            if (isCrit)
-            {
-                Console.WriteLine($"{Name} Crit hit {target.Name}!  {finalDamage} damaged!");
-            }
-            else
-            {
-                Console.WriteLine($"{Name} slash {target.Name}, {finalDamage} damaged.");
-            }
+            if (isCrit) Console.WriteLine($" {Name} Crit hit!");
+            else Console.WriteLine($" {Name} hit.");
 
-            int oldHP = target.HP;
-            target.HP -= finalDamage;
-            GameHelper.PrintColor($"{target.Name} HP: {oldHP} -> {target.HP}", ConsoleColor.Red);
+            target.TakeDamage(finalDamage); // Gọi hàm chịu sát thương của mục tiêu
+        }
+
+        public override void Attack(IDamageable target, string skillName)
+        {
+            bool isCrit;
+            int finalDamage = GameHelper.CalculateDamage(this.Damage + 15, out isCrit);
+
+            GameHelper.PrintColor($"{Name} used skill [{skillName}]!", ConsoleColor.Yellow);
+            target.TakeDamage(finalDamage);
         }
     }
 
     class Monster : GameEntity
     {
-        // Ghi đè lại để có lời thoại tấn công hung tợn của Quái vật
-        public override void Attack(GameEntity target)
+        public override void Attack(IDamageable target)
         {
             bool isCrit;
             int finalDamage = GameHelper.CalculateDamage(this.Damage, out isCrit);
 
-            if (isCrit)
-            {
-                Console.WriteLine($"{Name} Stupid attack {target.Name}! {finalDamage} damaged!");
-            }
-            else
-            {
-                Console.WriteLine($"{Name} dump attak {target.Name}, {finalDamage} damaged.");
-            }
+            Console.WriteLine($"{Name} stupid attack.");
+            target.TakeDamage(finalDamage);
+        }
 
-            int oldHP = target.HP;
-            target.HP -= finalDamage;
-            GameHelper.PrintColor($"{target.Name} HP: {oldHP} -> {target.HP}", ConsoleColor.Red);
+        public override void Attack(IDamageable target, string skillName)
+        {
+            bool isCrit;
+            int finalDamage = GameHelper.CalculateDamage(this.Damage + 5, out isCrit);
+
+            GameHelper.PrintColor($" {Name} dumb attack [{skillName}]!", ConsoleColor.DarkRed);
+            target.TakeDamage(finalDamage);
+        }
+    }
+
+    class DestructibleBox : IDamageable
+    {
+        public string Name { get; set; } = "a weird box";
+
+        private int hp;
+        public int HP
+        {
+            get { return hp; }
+            set { if (value < 0) hp = 0; else hp = value; }
+        }
+
+        public void TakeDamage(int amount)
+        {
+            int oldHP = this.HP;
+            this.HP -= amount;
+            Console.WriteLine($"the box {Name} is brokening!");
+            GameHelper.PrintColor($"{Name} durabity: {oldHP} -> {this.HP}", ConsoleColor.DarkYellow);
+
+            if (this.HP == 0)
+            {
+                GameHelper.PrintColor($"{Name} is broken! you bastard!", ConsoleColor.Cyan);
+            }
         }
     }
 }
