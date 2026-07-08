@@ -4,6 +4,24 @@ using System.Text;
 
 namespace ConsoleDungeonGame
 {
+    interface IWeapon
+    {
+        string GetDescription();
+        int GetBonusDamage();
+    }
+
+    class BasicSword : IWeapon
+    {
+        public string GetDescription()
+        {
+            return "Stupid sword";
+        }
+
+        public int GetBonusDamage()
+        {
+            return 5;
+        }
+    }
     interface IDamageable
     {
         int HP { get; set; }
@@ -35,25 +53,31 @@ namespace ConsoleDungeonGame
 
     class Player : GameEntity
     {
+        // Thêm thuộc tính Vũ khí cho người chơi
+        public IWeapon CurrentWeapon { get; set; }
+
+        // Override lại hàm tính sát thương để cộng thêm từ vũ khí
         public override void Attack(IDamageable target)
         {
             bool isCrit;
-            int finalDamage = GameHelper.CalculateDamage(this.Damage, out isCrit);
+            // Tổng sát thương = Sát thương gốc của nhân vật + Sát thương của vũ khí
+            int totalBaseDamage = this.Damage + (CurrentWeapon != null ? CurrentWeapon.GetBonusDamage() : 0);
+            int finalDamage = GameHelper.CalculateDamage(totalBaseDamage, out isCrit);
 
-            if (isCrit) Console.WriteLine($" {Name} Crit hit!");
-            else Console.WriteLine($" {Name} hit.");
+            if (CurrentWeapon != null)
+            {
+                Console.WriteLine($"⚔️ {Name} vung [{CurrentWeapon.GetDescription()}] tấn công!");
+            }
+            else
+            {
+                Console.WriteLine($"⚔️ {Name} đấm tay không!");
+            }
 
-            target.TakeDamage(finalDamage); // Gọi hàm chịu sát thương của mục tiêu
-        }
-
-        public override void Attack(IDamageable target, string skillName)
-        {
-            bool isCrit;
-            int finalDamage = GameHelper.CalculateDamage(this.Damage + 15, out isCrit);
-
-            GameHelper.PrintColor($"{Name} used skill [{skillName}]!", ConsoleColor.Yellow);
             target.TakeDamage(finalDamage);
         }
+
+        // Bạn nhớ bổ sung thêm hàm trống cho hàm Attack overload chứa skillName để tránh lỗi abstract nhé
+        public override void Attack(IDamageable target, string skillName) { }
     }
 
     class Monster : GameEntity
