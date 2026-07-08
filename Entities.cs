@@ -4,68 +4,100 @@ using System.Text;
 
 namespace ConsoleDungeonGame
 {
-    class Player
+    class GameEntity
     {
-        //attribute
         public string Name { get; set; }
         private int hp;
         public int HP
         {
             get { return hp; }
-            set { if (value < 0) hp = 0; else hp = value; } // Ensure HP does not go below 0
+            set { if (value < 0) hp = 0; else hp = value; } // Ensure HP doesn't go below 0
         }
         public int Damage { get; set; }
 
-        //action
-        public void Attack (Monster target)
+        public virtual void Attack(GameEntity target)
         {
             bool isCrit;
-            int finalDamage = GameHelper.CalculateDamage(this.Damage, out isCrit);
-            if(isCrit)
+            int  finalDamage = GameHelper.CalculateDamage(this.Damage, out isCrit);
+
+            if (isCrit)
             {
-                Console.WriteLine($"{Name} attacks {target.Name}, {finalDamage} damage! Critical hit!");
+                GameHelper.PrintColor($"Critical hit! {this.Name} damage to {target.Name}.", ConsoleColor.Red);
             }
             else
             {
-                Console.WriteLine($"{Name} attacks {target.Name}, {finalDamage} damage!");
+                Console.WriteLine($"{this.Name} damage to {target.Name}.");
             }
+
+            ApplyDamage(target, finalDamage);
+        }
+
+        public virtual void Attack(GameEntity target, string skillName)
+        {
+            bool isCrit;
+            int finalDamage = GameHelper.CalculateDamage(this.Damage + 15, out isCrit);
+
+            GameHelper.PrintColor($"{this.Name} uses {skillName} on {target.Name}.", ConsoleColor.Cyan);
+            if (isCrit) 
+            {
+                GameHelper.PrintColor($"Critical hit! {this.Name} damage to {target.Name}.", ConsoleColor.Red);
+            }
+
+            ApplyDamage(target, finalDamage);
+
+        }
+
+        private void ApplyDamage(GameEntity target, int damageAmount)
+        {
+            int oldHP = target.HP;
+            target.HP -= damageAmount;
+            GameHelper.PrintColor($"{target.Name} HP: {oldHP} -> {target.HP}", ConsoleColor.Red);
+        }
+    
+    }
+    class Player : GameEntity
+    {
+        //overide
+        public override void Attack(GameEntity target)
+        {
+            bool isCrit;
+            int finalDamage = GameHelper.CalculateDamage(this.Damage, out isCrit);
+
+            if (isCrit)
+            {
+                Console.WriteLine($"{Name} Crit hit {target.Name}!  {finalDamage} damaged!");
+            }
+            else
+            {
+                Console.WriteLine($"{Name} slash {target.Name}, {finalDamage} damaged.");
+            }
+
             int oldHP = target.HP;
             target.HP -= finalDamage;
-
             GameHelper.PrintColor($"{target.Name} HP: {oldHP} -> {target.HP}", ConsoleColor.Red);
-            
         }
-
     }
 
-    class Monster
+    class Monster : GameEntity
     {
-        public string Name { get; set; }
-        private int hp;
-        public int HP
-        {
-            get { return hp; }
-            set { if (value < 0) hp = 0; else hp = value; } // Ensure HP does not go below 0
-        }
-        public int Damage { get; set; }
-
-        public void Attack(Player target)
+        // Ghi đè lại để có lời thoại tấn công hung tợn của Quái vật
+        public override void Attack(GameEntity target)
         {
             bool isCrit;
             int finalDamage = GameHelper.CalculateDamage(this.Damage, out isCrit);
-            if(isCrit)
+
+            if (isCrit)
             {
-                Console.WriteLine($"{Name} attacks {target.Name}, {finalDamage} damage! Critical hit!");
+                Console.WriteLine($"{Name} Stupid attack {target.Name}! {finalDamage} damaged!");
             }
             else
             {
-                Console.WriteLine($"{Name} attacks {target.Name}, {finalDamage} damage!");
+                Console.WriteLine($"{Name} dump attak {target.Name}, {finalDamage} damaged.");
             }
 
-            int oldHp = target.HP;
+            int oldHP = target.HP;
             target.HP -= finalDamage;
-            GameHelper.PrintColor($"{target.Name} HP: {oldHp} -> {target.HP}", ConsoleColor.Red);
-            
+            GameHelper.PrintColor($"{target.Name} HP: {oldHP} -> {target.HP}", ConsoleColor.Red);
         }
     }
 }
