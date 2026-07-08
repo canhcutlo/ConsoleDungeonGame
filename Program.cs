@@ -14,7 +14,7 @@ class Program
         player.Damage = 20;
 
         //monsters
-        Monster StupidGoblin = new Monster { Name = "Stupid Goblin", HP = 30, Damage = 5 };
+        Monster Goblin = new Monster { Name = "Stupid Goblin", HP = 30, Damage = 5 };
         //Monster[] monsters = new Monster[]
         //{
         //    new Monster { Name = "Stupid Goblin", HP = 30, Damage = 5 },
@@ -25,23 +25,26 @@ class Program
         Console.WriteLine($"A stupid goblin appears! Prepare for battle, {player.Name}!");
 
         //loop for combat
-        while(player.HP >0 && StupidGoblin.HP >0)
+        while(player.HP >0 && Goblin.HP >0)
         {
-            player.Attack(StupidGoblin);
-            if (StupidGoblin.HP <= 0) break;
+            player.Attack(Goblin);
+            if (Goblin.HP == 0) break;
 
-            StupidGoblin.Attack(player);
-            Console.WriteLine($"-> current status: {player.Name} ({player.HP} HP) | {StupidGoblin.Name} ({StupidGoblin.HP} HP)\n");
+            Console.ReadLine();
+            Goblin.Attack(player);
+            string status = $"-> [Player status] {player.Name} : {player.HP} | {Goblin.Name} : {Goblin.HP} HP";
+            GameHelper.PrintColor(status, ConsoleColor.Green);
+            Console.WriteLine(new string('-', 40));
             Console.ReadLine();
         }
 
         if (player.HP > 0)
         {
-            Console.WriteLine($"Congratulations, {player.Name}! You have defeated the {StupidGoblin.Name}!");
+            Console.WriteLine($"Congratulations, {player.Name}! You have defeated the {Goblin.Name}!");
         }
         else
         {
-            Console.WriteLine($"You have been defeated by the {StupidGoblin.Name}. Better luck next time, {player.Name}.");
+            Console.WriteLine($"You have been defeated by the {Goblin.Name}. Better luck next time, {player.Name}.");
         }
     }
 
